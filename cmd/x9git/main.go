@@ -72,8 +72,7 @@ func main() {
 	doParseArgs()
 	if parsedArgs.functionPtr != nil {
 		cli.Echo("Invoking function.")
-		err := parsedArgs.functionPtr()
-		if err == nil {
+		if err := parsedArgs.functionPtr(); err == nil {
 			cli.Echo("Ran.")
 		}
 	}
@@ -84,6 +83,7 @@ func main() {
 }
 
 func cmdShowVersion() (err error) {
+	cli.Echo("Running ...")
 	ShowVersion()
 	return nil
 }
