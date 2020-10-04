@@ -60,7 +60,8 @@
 
 ## Do infrequently: Push
 
-	git push && d && git branch -vv && echo && git status && echo
+	commitMessage=""
+	git add . && git commit -m "${commitMessage}"; git push && d && git branch -vv && echo && git status && echo
 
 ## Feature branch: Create new based on existing "dirty" state
 
