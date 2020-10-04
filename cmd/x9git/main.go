@@ -34,52 +34,104 @@
 package main
 
 import (
-	"fmt"
+	"regexp"
 	"strings"
-
-	"github.com/alexflint/go-arg"
-	//"github.com/alexflint/go-arg"
 )
 
-// Version is for x9go_build to set
-var Version string
+//import "github.com/alexflint/go-arg"
 
-// GitCommitHash is for x9go_build to set
-var GitCommitHash string
+var cli CLI
 
-// BuildDateTime is for x9go_build to set
-var BuildDateTime string
+//meCommand := os.Args[0]
+//meName := filepath.Base(os.Args[0])
 
-// GoVersion is for x9go_build to set
-var GoVersion string
+func showHelp() string {
+	return "Help"
+}
+
+func showLicense() string {
+	return "GPL v3"
+}
+
+func showAbout() string {
+	return ""
+}
+
+type tParsedArgs struct {
+	command     string
+	functionPtr func() (err error)
+}
+
+var parsedArgs tParsedArgs
 
 func main() {
+	Init()
+	cli.Echo()
 
-	type cmdP2f struct {
-		help bool `arg:"-h" help:"Show help"`
+	// Parse Args
+	doParseArgs()
+	if parsedArgs.functionPtr != nil {
+		cli.Echo("Invoking function.")
+		err := parsedArgs.functionPtr()
+		if err == nil {
+			cli.Echo("Ran.")
+		}
 	}
 
-	var appArgs struct {
-		p2f *cmdP2f `arg:"subcommand:p2f" placeholder:"COMMAND" help:"Command to execute."`
+	cli.Echo()
+	cli.Echo("Done.")
+	cli.Echo()
+}
+
+func cmdShowVersion() (err error) {
+	ShowVersion()
+	return nil
+}
+
+func doParseArgs() {
+
+	// Look at args as a whole
+	lcargsStr := strings.ToLower(argsStr) + " "
+	switch true {
+
+	case getFirstVal(regexp.MatchString(`^(-v|-{0,2}version) .*`, lcargsStr)):
+		parsedArgs.command = "version"
+		parsedArgs.functionPtr = cmdShowVersion
+
 	}
 
-	arg.MustParse(&appArgs) // arg
-	fmt.Println(appArgs.p2f)
+	cli.Echof("parsedArgs.command = '%s'", parsedArgs.command)
 
+	// Parse arguments
+	for _, arg := range args {
+		lcarg := strings.ToLower(arg)
+		cli.Echof("lcarg = '%s'", lcarg)
+		switch true {
+
+		case getFirstVal(regexp.MatchString(`^a.*b$`, lcarg)):
+			cli.Echo("yes")
+
+		}
+	}
 }
 
-func getVersion() string {
-	// Show variables injected at compile-time
-	slice := []string{
-		"Version .................: " + Version,
-		"Built with go Version ...: " + GoVersion,
-		"Build date/time .........: " + BuildDateTime,
-		"Git commit hash .........: " + GitCommitHash}
-
-	//fmt.Println("Version .................: ", Version)
-	//fmt.Println("Built with go Version ...: ", GoVersion)
-	//fmt.Println("Git commit hash .........: ", GitCommitHash)
-	//fmt.Println("Build date/time .........: ", BuildDateTime)
-
-	return (strings.Join(slice, "\n"))
-}
+//func main() {
+//
+//	type cmdP2f struct {
+//		help bool `arg:"-h" help:"Show help"`
+//	}
+//
+//	var appArgs struct {
+//		p2f *cmdP2f `arg:"subcommand:p2f" placeholder:"COMMAND" help:"Command to execute."`
+//
+//	}
+//	func (appArgs) Version() string {
+//
+//	arg.MustParse(&appArgs) // arg belongs to alexflint/go-arg namespace, which presumably parses os.Args[1:]
+//
+//	switch {
+//	case args.p2f != nil:
+//		showHelp()
+//	}
+//
+//}

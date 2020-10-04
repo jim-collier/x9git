@@ -1,8 +1,12 @@
 #!/bin/bash
+# shellcheck disable=2004  ## Inappropriate complaining of "$/${} is unnecessary on arithmetic variables."
+# shellcheck disable=2034  ## Unused variables.
+# shellcheck disable=2119  ## Disable confusing and inapplicable warning about function's $1 meaning script's $1.
+# shellcheck disable=2155  ## Disable check to 'Declare and assign separately to avoid masking return values'.
+# shellcheck disable=2120  ## OK with declaring variables that accept arguments, without calling with arguments (this is 'overloading').
+
 
 ##	Purpose: Quick and dirty build script until 'redo' build system implemented.
-##	History:
-##		- 20200927 JC: Created.
 ##	Notes:
 ##		- fHook_Build() and fHook_PostBuild(), while they exist in this script, are intended to live by themselves and used thusly:
 ##			x9go-build  ## This script
@@ -15,6 +19,9 @@
 ##				function fHook_PostBuild(){
 ##				}
 ##				. x9go-build $1
+##	History:
+##		- 20200927 JC: Created.
+##		- 20201003 JC: Some bug fixes.
 
 
 function fMain(){
@@ -107,7 +114,6 @@ function fMain(){
 	fEcho "Test run ..."
 	fEcho_Clean "-------------------------------------------------------------------------------"
 	"bin/${exeName}"
-	fEcho_ResetBlankCounter
 	fEcho_Clean "-------------------------------------------------------------------------------"
 	fEcho_Clean
 
@@ -224,7 +230,7 @@ function fHook_PostBuild(){
 				done
 
 				if [[ -z "$(find "${tmpDir}" -type f 2>/dev/null || true)" ]]; then
-					fEcho_Clean "    fHook_PostBuild(): No dependencies were copied to '${tmpDir}'."
+					fEcho_Clean "    FYI: it appears that '${sourceBinDir}' has no dependencies."
 				else
 
 					## Arcvhive the dependencies
@@ -237,32 +243,35 @@ function fHook_PostBuild(){
 						fThrowError "fHook_PostBuild(): Archive not found: '${targetDepsCopiesDir}/system.7z'."
 					fi
 
-					## Copy the program and dependencies to x9chroot
-					local -r targetChroot="/var/x9chroot"
-					local -r targetTest="${targetChroot}${HOME}/test"
-					if [[ -n "$(which x9chroot 2>/dev/null || true)" ]]; then
-						if [[ -n "$(ls -A "${targetChroot}${HOME}" 2>/dev/null || true)" ]]; then
+				fi
 
-							## Manage test dir versions
-							fEcho_Clean "    Managing old x9chroot test folders ..."
-							if [[ -d "${targetTest}_old" ]]; then \rm -rf "${targetTest}_old"                      ; fi
-							if [[ -d "${targetTest}"     ]]; then  mv     "${targetTest}"      "${targetTest}_old" ; fi
-							mkdir -p "${targetTest}"
+				## Copy the program and dependencies to x9chroot
+				local -r targetChroot="/var/x9chroot"
+				local -r targetTest="${targetChroot}${HOME}/test"
+				if [[ -n "$(which x9chroot 2>/dev/null || true)" ]]; then
+					if [[ -n "$(ls -A "${targetChroot}${HOME}" 2>/dev/null || true)" ]]; then
 
-							## Copy contents of bin to chroot target
-							fEcho_Clean "    Copying '${sourceBinDir}/*' to '${targetTest}/' ..."
-							cp --parents -a --update "${sourceBinDir}"/ "${targetTest}"/
+						## Manage test dir versions
+						fEcho_Clean "    Managing old x9chroot test folders ..."
+						if [[ -d "${targetTest}_old" ]]; then \rm -rf "${targetTest}_old"                      ; fi
+						if [[ -d "${targetTest}"     ]]; then  mv     "${targetTest}"      "${targetTest}_old" ; fi
+						mkdir -p "${targetTest}"
 
-							## Copy dependencies
+						## Copy contents of bin to chroot target
+						fEcho_Clean "    Copying '${sourceBinDir}/*' to '${targetTest}/' ..."
+						cp --parents -a --update "${sourceBinDir}"/ "${targetTest}"/
+
+						## Copy dependencies
+						if [[ -n "$(find "${tmpDir}" -type f 2>/dev/null || true)" ]]; then
 							fEcho_Clean "    Copying system dependencies to '${targetTest}/' ..."
 							pushd "${tmpDir}" 1>/dev/null
 								sudo cp --parents -a --update ./  "${targetChroot}"/
 							popd 1>/dev/null
-
 						fi
-					fi
 
+					fi
 				fi
+
 			fi
 		fi
 	fi
@@ -272,6 +281,7 @@ function fHook_PostBuild(){
 	fEcho_Clean "Ready to test in isolation via these commands:"
 	fEcho_Clean
 	fEcho_Clean "x9chroot enter"
+	# shellcheck disable=2088  ## Complains about ~, which we aren't trying to expand
 	fEcho_Clean "~/test/${sourceBinDir}/${exeName}"
 
 }
@@ -304,7 +314,7 @@ declare -i _wasLastEchoBlank=0
 function fEcho_ResetBlankCounter(){ _wasLastEchoBlank=0; }
 function fEcho_Clean(){
 	if [[ -n "$1" ]]; then
-		echo -e "$*" | echo -e "$*"
+		echo -e "$*"
 		_wasLastEchoBlank=0
 	else
 		[[ $_wasLastEchoBlank -eq 0 ]] && echo
