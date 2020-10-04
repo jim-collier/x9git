@@ -75,7 +75,7 @@
 
 ## Feature branch: Create off of main (assuming clean current state)
 
-	commitMessage="Created feature branch from clean existing state"
+	commitMessage="Created feature branch from clean main"
 	featureBranch="$(date "+%Y%m%d-%H%M%S")_jc_feature"
 	sourceBranch="main"
 	echo -e "\nfeatureBranch ...: '${featureBranch}'\nsourceBranch ....: '${sourceBranch}'\ncommitMessage ...: '${commitMessage}'\n"
