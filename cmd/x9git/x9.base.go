@@ -23,13 +23,13 @@ var GoVersion string
 // ShowVersion outputs the above version-related strings.
 //	History:
 //		- 20201003 JC: Created.
-func ShowVersion() string {
+func ShowVersion() {
 	// Show variables injected at compile-time
 	slice := []string{
 		//filepath.Base(os.Args[0]),
 		meName,
 		"Version .................: " + Version,
-		"Built with go Version ...: " + GoVersion,
+		"Built with Go version ...: " + GoVersion,
 		"Build date/time .........: " + BuildDateTime,
 		"Git commit hash .........: " + GitCommitHash,
 	}
@@ -39,7 +39,7 @@ func ShowVersion() string {
 	//fmt.Println("Git commit hash .........: ", GitCommitHash)
 	//fmt.Println("Build date/time .........: ", BuildDateTime)
 
-	return (strings.Join(slice, "\n"))
+	cli.EchoClean(strings.Join(slice, "\n"))
 }
 
 var meCommand string

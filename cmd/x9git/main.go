@@ -36,56 +36,74 @@ package main
 import (
 	"regexp"
 	"strings"
+	//"github.com/alexflint/go-arg"
 )
 
-//import "github.com/alexflint/go-arg"
+const copyrightYears = "2020"
+const copyrightAuthors = "Jim Collier"
+
+const regexFlagShort = `(?:-|\/)`
+const regexFlagLong = `(?:-{1,2}|\/)`
+const regexFlagLongOrNoFlag = `(?:-{1,2}|\/)?`
 
 var cli CLI
 
 //meCommand := os.Args[0]
 //meName := filepath.Base(os.Args[0])
 
-func showHelp() string {
-	return "Help"
-}
-
-func showLicense() string {
-	return "GPL v3"
-}
-
-func showAbout() string {
-	return ""
-}
-
 type tParsedArgs struct {
-	command     string
+	showOnly    bool
 	functionPtr func() (err error)
 }
 
 var parsedArgs tParsedArgs
 
+func cmdShowAbout() (err error) {
+	cli.EchoClean()
+	cli.EchoClean("A safe and goal-oriented, workflow-opinionated wrapper around the Git CLI.")
+	cli.EchoClean("Written and tested with 'git' version 2.28.0.")
+	cli.EchoClean()
+	return nil
+}
+
+func cmdShowHelp() (err error) {
+	cli.EchoClean()
+	cmdShowAbout()
+	cli.EchoClean()
+	cli.EchoCleanf("Syntax: %s <command>", meName)
+	cli.EchoClean()
+	return nil
+}
+
+func cmdShowVersion() (err error) {
+	ShowVersion()
+	return nil
+}
+
+func cmdShowLicense() (err error) {
+	cli.EchoCleanf("Copyright (c) %s, %s.", copyrightYears, copyrightAuthors)
+	cli.EchoClean("License GPLv3+: GNU GPL version 3 or later, full text at:")
+	cli.EchoClean("    https://www.gnu.org/licenses/gpl-3.0.en.html")
+	cli.EchoClean("There is no warranty, to the extent permitted by law.")
+	return nil
+}
+
 func main() {
 	Init()
+	cli.Echo()
 	cli.Echo()
 
 	// Parse Args
 	doParseArgs()
+
+	// Execute function
 	if parsedArgs.functionPtr != nil {
-		cli.Echo("Invoking function.")
-		if err := parsedArgs.functionPtr(); err == nil {
-			cli.Echo("Ran.")
-		}
+		parsedArgs.functionPtr()
 	}
 
 	cli.Echo()
 	cli.Echo("Done.")
 	cli.Echo()
-}
-
-func cmdShowVersion() (err error) {
-	cli.Echo("Running ...")
-	ShowVersion()
-	return nil
 }
 
 func doParseArgs() {
@@ -94,18 +112,24 @@ func doParseArgs() {
 	lcargsStr := strings.ToLower(argsStr) + " "
 	switch true {
 
-	case getFirstVal(regexp.MatchString(`^(-v|-{0,2}version) .*`, lcargsStr)):
-		parsedArgs.command = "version"
+	case getFirstVal(regexp.MatchString(`^((?:-{1,2}|\/)?about) .*`, lcargsStr)):
+		parsedArgs.functionPtr = cmdShowVersion
+
+	case getFirstVal(regexp.MatchString(`^(?:(?:-|\/)h|(?:-{1,2}|\/)?help) .*`, lcargsStr)):
+		parsedArgs.functionPtr = cmdShowHelp
+
+	case getFirstVal(regexp.MatchString(`^(?:(?:-|\/)v|(?:-{1,2}|\/)?ver(?:sion)?) .*`, lcargsStr)):
+		parsedArgs.functionPtr = cmdShowVersion
+
+	case getFirstVal(regexp.MatchString(`^((?:-{1,2}|\/)?license) .*`, lcargsStr)):
 		parsedArgs.functionPtr = cmdShowVersion
 
 	}
 
-	cli.Echof("parsedArgs.command = '%s'", parsedArgs.command)
-
 	// Parse arguments
 	for _, arg := range args {
 		lcarg := strings.ToLower(arg)
-		cli.Echof("lcarg = '%s'", lcarg)
+		//cli.Echof("lcarg = '%s'", lcarg)
 		switch true {
 
 		case getFirstVal(regexp.MatchString(`^a.*b$`, lcarg)):
