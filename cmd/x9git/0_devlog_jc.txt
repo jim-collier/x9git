@@ -1,0 +1,7 @@
+STACK
+
+	* Eventually output errors to CLI [20201004]
+		- E.g. x9.cli.go:Exec(command); command doesn't exist [20201004]
+	* Repeated calls to Echo("") still output repeated newlines [20201004]
+
+DONE

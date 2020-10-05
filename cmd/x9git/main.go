@@ -1,11 +1,19 @@
 //	Purpose: An opinionated wrapper around Git.
 //	Notes:
-//		- Project go-git (https://github.com/go-git/go-git), a native go implimentation of git,
-//		  isn't ready and probably never will be. (Git is very complex!) Therefore, this uses
-//		  shell commands.
 //		- Basically, this could just as easily have been written in Bash. But it's in Go, for
 //		  a little cleaner structure, type checking, etc.
 //		- Initially written and tested only on Linux. May be expanded to include Windows later.
+//		- What about some kind of native go/git wrapper?
+//			- git2go is the most promising:
+//				- https://github.com/libgit2/git2go
+//				- Wraps libgit2 C library.
+//				- Big project.
+//				- Currently failing build.
+//				- Sounds like build/dependency/linking headaches.
+//			- go-git is being written pure Go.
+//				- Currently very incomplete and may never really be, as git is very complex.
+//				- Currently can't do basic stuff like merge.
+//			- Go itself shells out to Git, so this might as well do the same.
 //	Syntax design:
 //		x9git new repo <project> <URI root> [--withdevbranch]   new repo, rename master to main, [create develop]
 //		x9git clone|get <url>
@@ -93,13 +101,15 @@ func main() {
 	cli.Echo()
 	cli.Echo()
 
-	// Parse Args
-	doParseArgs()
+	cli.Exec(args[0], args[1:])
 
-	// Execute function
-	if parsedArgs.functionPtr != nil {
-		parsedArgs.functionPtr()
-	}
+	//	// Parse Args
+	//	doParseArgs()
+	//
+	//	// Execute function
+	//	if parsedArgs.functionPtr != nil {
+	//		parsedArgs.functionPtr()
+	//	}
 
 	cli.Echo()
 	cli.Echo("Done.")
