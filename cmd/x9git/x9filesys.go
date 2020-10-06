@@ -4,6 +4,40 @@ import (
 	"os"
 )
 
+// FsObjType exists because a type and const, declared together, emulate an 'enum'
+type FsObjType int
+
+// Enums of type FsObjType
+// Dir: regular dir. File: REGULAR file (not symlink). Link: symlink, junction, or mountpoint. Socket, NamedPipe: special *nix
+const (
+	Dir FsObjType = iota
+	File
+	Link
+	Socket
+	NamedPipe
+)
+
+// FsObj wraps and abstracts the complicated messyness of cross-platform filesystem objects (which no programming language yet invented by man, seems to have really cracked in a directly useful way)
+type FsObj struct {
+	path                    string
+	fsObjType               FsObjType
+	linkProps               *FsObjLink
+	inode                   int64
+	canWrite                bool
+	isVisible               bool
+	bytes                   int64
+	crtimeBirthedUTC        int64
+	mtimeContentUpdatedUTC  int64
+	ctimeMetadataUpdatedUTC int64
+	xattrs                  map[string]string
+}
+
+// FsObjLink contains various properties describing
+type FsObjLink struct {
+	IsGood      bool
+	linkedFsObj *FsObj
+}
+
 // IsPathspecVisible returns true if pathspec exists, AND is accessible.
 // References:
 //		https://stackoverflow.com/a/44815664/9190681
