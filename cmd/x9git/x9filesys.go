@@ -21,7 +21,7 @@ const (
 type FsObj struct {
 	path                    string
 	fsObjType               FsObjType
-	linkProps               *FsObjLink
+	linkProps               *FsObjLink // Pointer so that we can leave it null most of the time. This is guaranteed to be non-null, if fsObjType = Link.
 	inode                   int64
 	canWrite                bool
 	isVisible               bool
@@ -29,13 +29,14 @@ type FsObj struct {
 	crtimeBirthedUTC        int64
 	mtimeContentUpdatedUTC  int64
 	ctimeMetadataUpdatedUTC int64
-	xattrs                  map[string]string
+	xattrStr                string
+	propsUpdatedUTC         int64 // When was this struct updated. Can use to base decisions on if needs to be refreshed.
 }
 
 // FsObjLink contains various properties describing
 type FsObjLink struct {
 	IsGood      bool
-	linkedFsObj *FsObj
+	linkedFsObj *FsObj // Pointer so that we can leave it null most of the time
 }
 
 // IsPathspecVisible returns true if pathspec exists, AND is accessible.
